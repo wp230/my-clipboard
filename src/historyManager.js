@@ -54,6 +54,8 @@ export class HistoryManager {
     }
 
     save(history) {
+        const imagePaths = new Map();
+
         const serializable = history.map(entry => {
             const obj = {
                 type: entry.type,
@@ -62,13 +64,17 @@ export class HistoryManager {
             };
 
             if (entry.type === 'image' && entry.bytes) {
-                if (!entry.imagePath)
-                    entry.imagePath = this._saveImage(entry.bytes, entry.timestamp);
-                obj.imagePath = entry.imagePath;
+                const path = entry.imagePath ?? this._saveImage(entry.bytes, entry.timestamp);
+                obj.imagePath = path;
+                imagePaths.set(entry, path);
             }
 
             return obj;
         });
+
+        for (const [entry, path] of imagePaths) {
+            entry.imagePath = path;
+        }
 
         try {
             const json = JSON.stringify(serializable, null, 2);
@@ -91,7 +97,6 @@ export class HistoryManager {
 
         try {
             const outputStream = file.replace(null, false, Gio.FileCreateFlags.NONE, null);
-            const data = bytes.get_data();
             outputStream.write_bytes(bytes, null);
             outputStream.close(null);
             return path;

@@ -34,6 +34,7 @@ export class ClipboardManager {
             GLib.source_remove(this._debounceId);
             this._debounceId = null;
         }
+        this._onChangeCallbacks = [];
     }
 
     get history() {
@@ -46,6 +47,7 @@ export class ClipboardManager {
 
     set maxSize(value) {
         this._maxSize = value;
+        this._trimHistory();
     }
 
     set storeImages(value) {
@@ -63,6 +65,19 @@ export class ClipboardManager {
     _notifyChange() {
         for (const cb of this._onChangeCallbacks)
             cb(this._history);
+    }
+
+    _trimHistory() {
+        if (this._history.length <= this._maxSize)
+            return;
+
+        const evicted = this._history.slice(this._maxSize);
+        this._history = this._history.slice(0, this._maxSize);
+
+        for (const entry of evicted) {
+            if (entry.type === 'image')
+                entry.bytes = null;
+        }
     }
 
     _scheduleRead() {
@@ -114,8 +129,8 @@ export class ClipboardManager {
 
             this._history = [entry, ...this._history.filter(
                 h => !(h.type === 'text' && h.content === text)
-            )].slice(0, this._maxSize);
-
+            )];
+            this._trimHistory();
             this._notifyChange();
         });
     }
@@ -138,6 +153,16 @@ export class ClipboardManager {
                         if (!bytes || bytes.get_size() === 0)
                             return;
 
+                        const newSize = bytes.get_size();
+                        const isDuplicate = this._history.length > 0 &&
+                            this._history[0].type === 'image' &&
+                            this._history[0].bytes &&
+                            this._history[0].bytes.get_size() === newSize &&
+                            this._bytesEqual(this._history[0].bytes, bytes);
+
+                        if (isDuplicate)
+                            return;
+
                         const entry = {
                             type: 'image',
                             content: null,
@@ -146,7 +171,8 @@ export class ClipboardManager {
                             imagePath: null,
                         };
 
-                        this._history = [entry, ...this._history].slice(0, this._maxSize);
+                        this._history = [entry, ...this._history];
+                        this._trimHistory();
                         this._notifyChange();
                     } catch (e) {
                         logError(e, 'Failed to read image from clipboard');
@@ -156,6 +182,23 @@ export class ClipboardManager {
         } catch (e) {
             logError(e, 'Failed to initiate image clipboard transfer');
         }
+    }
+
+    _bytesEqual(a, b) {
+        if (a.get_size() !== b.get_size())
+            return false;
+
+        const dataA = a.get_data();
+        const dataB = b.get_data();
+
+        if (!dataA || !dataB)
+            return false;
+
+        for (let i = 0; i < dataA.length; i++) {
+            if (dataA[i] !== dataB[i])
+                return false;
+        }
+        return true;
     }
 
     selectItem(index) {
@@ -184,6 +227,10 @@ export class ClipboardManager {
     }
 
     clearAll() {
+        for (const entry of this._history) {
+            if (entry.type === 'image')
+                entry.bytes = null;
+        }
         this._history = [];
         this._notifyChange();
     }

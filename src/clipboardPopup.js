@@ -60,6 +60,9 @@ export class ClipboardPopup {
         this._indicator = null;
         this._keyPressId = null;
         this._pasteTimeoutId = null;
+        this._menuDirty = true;
+        this._menuOpenId = null;
+        this._virtualDevice = null;
     }
 
     enable() {
@@ -73,8 +76,15 @@ export class ClipboardPopup {
 
         this._buildMenu();
 
-        this._changeCallback = () => this._buildMenu();
+        this._changeCallback = () => {
+            this._menuDirty = true;
+        };
         this._clipboardManager.onChange(this._changeCallback);
+
+        this._menuOpenId = this._indicator.menu.connect('open-state-changed', (_menu, isOpen) => {
+            if (isOpen && this._menuDirty)
+                this._buildMenu();
+        });
 
         this._keyPressId = this._indicator.menu.actor.connect('key-press-event', (_actor, event) => {
             const keyval = event.get_key_symbol();
@@ -109,10 +119,17 @@ export class ClipboardPopup {
             this._keyPressId = null;
         }
 
+        if (this._menuOpenId && this._indicator) {
+            this._indicator.menu.disconnect(this._menuOpenId);
+            this._menuOpenId = null;
+        }
+
         if (this._changeCallback) {
             this._clipboardManager.removeOnChange(this._changeCallback);
             this._changeCallback = null;
         }
+
+        this._virtualDevice = null;
 
         if (this._indicator) {
             this._indicator.destroy();
@@ -133,9 +150,16 @@ export class ClipboardPopup {
         });
     }
 
+    _getVirtualDevice() {
+        if (!this._virtualDevice) {
+            const seat = Clutter.get_default_backend().get_default_seat();
+            this._virtualDevice = seat.create_virtual_device(Clutter.InputDeviceType.KEYBOARD_DEVICE);
+        }
+        return this._virtualDevice;
+    }
+
     _simulatePaste() {
-        const seat = Clutter.get_default_backend().get_default_seat();
-        const vDevice = seat.create_virtual_device(Clutter.InputDeviceType.KEYBOARD_DEVICE);
+        const vDevice = this._getVirtualDevice();
 
         const time = GLib.get_monotonic_time();
         vDevice.notify_keyval(time, Clutter.KEY_Control_L, Clutter.KeyState.PRESSED);
@@ -148,6 +172,7 @@ export class ClipboardPopup {
         if (!this._indicator)
             return;
 
+        this._menuDirty = false;
         this._indicator.menu.removeAll();
 
         const history = this._clipboardManager.history;
