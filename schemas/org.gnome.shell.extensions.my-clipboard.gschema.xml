@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist gettext-domain="my-clipboard">
+  <schema id="org.gnome.shell.extensions.my-clipboard"
+          path="/org/gnome/shell/extensions/my-clipboard/">
+
+    <key name="max-history-size" type="i">
+      <default>50</default>
+      <summary>Maximum history size</summary>
+      <description>Maximum number of clipboard entries to keep in history</description>
+    </key>
+
+    <key name="max-text-length" type="i">
+      <default>200</default>
+      <summary>Maximum text preview length</summary>
+      <description>Maximum number of characters to show in text preview</description>
+    </key>
+
+    <key name="store-images" type="b">
+      <default>true</default>
+      <summary>Store images</summary>
+      <description>Whether to store image clipboard entries</description>
+    </key>
+
+    <key name="thumbnail-size" type="i">
+      <default>64</default>
+      <summary>Thumbnail size</summary>
+      <description>Size of image thumbnails in pixels</description>
+    </key>
+
+    <key name="toggle-shortcut" type="as">
+      <default>['&lt;Super&gt;v']</default>
+      <summary>Toggle shortcut</summary>
+      <description>Keyboard shortcut to open the clipboard popup</description>
+    </key>
+
+  </schema>
+</schemalist>

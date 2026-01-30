@@ -1,0 +1,49 @@
+/* My Clipboard Extension Styles */
+
+.my-clipboard-popup {
+    max-height: 500px;
+}
+
+.my-clipboard-scroll {
+    max-height: 450px;
+}
+
+.my-clipboard-item {
+    padding: 4px 8px;
+}
+
+.my-clipboard-index-label {
+    font-weight: bold;
+    font-size: 11px;
+    min-width: 24px;
+    text-align: center;
+    color: #888;
+    margin-right: 8px;
+}
+
+.my-clipboard-text-preview {
+    font-size: 13px;
+    max-width: 350px;
+}
+
+.my-clipboard-image-thumbnail {
+    margin: 4px 0;
+}
+
+.my-clipboard-empty-label {
+    font-style: italic;
+    color: #888;
+    padding: 12px;
+    text-align: center;
+}
+
+.my-clipboard-clear-button {
+    margin-top: 4px;
+}
+
+.my-clipboard-header {
+    font-weight: bold;
+    font-size: 12px;
+    padding: 4px 8px;
+    color: #aaa;
+}

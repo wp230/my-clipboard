@@ -1,0 +1,9 @@
+{
+    "uuid": "my-clipboard@kwon",
+    "name": "My Clipboard",
+    "description": "Clipboard manager for GNOME Shell 46 with image support and persistent history",
+    "shell-version": ["46"],
+    "version": 1,
+    "url": "https://github.com/wp230/my-clipboard",
+    "settings-schema": "org.gnome.shell.extensions.my-clipboard"
+}
